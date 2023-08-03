@@ -3,23 +3,27 @@ import { useEffect, useState } from "react";
 
 // Importing products from groceries 
 import { products } from './GrocceryDetails/groceries.js'
+import ProductsList from "./components/ProductsList.js";
+import GrocerryProductsList from "./components/GrocerryProductsList.js";
+import { useDispatch, useSelector } from "react-redux";
+import { actionCreators } from "./state/index.js";
+import { bindActionCreators } from "redux";
 
 
 function App() {
   // State for Storing Products
   const [allProduts,setAllProducts] = useState(JSON.parse(localStorage.getItem("cart")));
 
-  // State for Calculating  Products SubTota;
-  const [subTotal,setSubTotal] = useState(0);
-
-  // State for Calculating  Products savings;
-  const [savings,setSavings] = useState(0);
-
+  
   // State for Calculating  Products Total Amount;
-  const [totalAmount,setTotalAmount] = useState(0);
+  const amount = useSelector(state=>state.amountReducer)
 
-  // const products_name = ["Bread","Milk", "Cheese", "Soup","Butter"]
+  // State for Calculating  Products SubTota;
+  const subTotalRe = useSelector(state=>state.subTotalReducer)
+  // State for Calculating  Products savings;
+  const savingRe = useSelector(state=>state.savingsReducer)
 
+  const dispatch = useDispatch()
 
 
   // Function for calculating prices
@@ -37,7 +41,7 @@ function App() {
         saves += (p.price/2); 
       }
       if(p.name === "Soup"){
-        JSON.parse(localStorage.getItem("cart")).map((p)=>{
+        JSON.parse(localStorage.getItem("cart")).forEach((p)=>{
           if(p.name === "Bread"){
             saves += p.price/2;
           }
@@ -49,10 +53,16 @@ function App() {
     })
 
     console.log("Saves ",saves)
-    setSavings(saves)
-    setSubTotal(total);
-    
-    setTotalAmount(total-saves);
+   
+    // Dispatching savings
+    dispatch(actionCreators.savings(saves))
+
+    // Dispatching subTotal
+    dispatch(actionCreators.subTotal(total))
+
+    // Dispatching TotalAmount
+    dispatch(actionCreators.totalAmount(total-saves))
+
     
   }
 
@@ -162,139 +172,19 @@ function App() {
   }
 
 
-
-  return (
+  return(
     <div className="App">
+     
       <h1 className="mb-8 text-center text-4xl font-extrabold leading-none tracking-tight text-gray-900 md:text-5xl lg:text-6xl dark:text-white">Grocery Management System</h1>
 
       <div className="flex justify-around">
-        <div className="w-1/4 h-96 rounded overflow-hidden shadow-lg">
-        {/* <img className="w-full" src="/img/card-top.jpg" alt="Sunset in the mountains"> */}
-        <div className="px-6 py-4">
-          <div className="font-bold text-xl mb-2">Products</div>
-          <hr />
-          
-            {
-              Object.keys(products).map((p)=>{
-                
-                return (<>
-                  <div key={p} className="products_list flex text-xl mt-2 mb-2 font-medium justify-between	">
-                    <div className="product_name">{p}</div>
-                    <div className="product_price">£ {products[p]}</div>
-                    
-                    <button onClick={()=>handleAddButton({name:p,price:products[p],qty:1})} className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-1 px-3 rounded">
-                      Add
-                    </button>
-                    
-                  </div>
-                  <hr />
-                </>)
-              })
-            }
 
+        <ProductsList products={products} handleAddButton={handleAddButton}  />
+        <GrocerryProductsList allProduts={allProduts} setProductQuantity={setProductQuantity} subTotal={subTotalRe} savings={savingRe} totalAmount={amount} />
 
-            {/* <div className="products_list flex text-xl mt-2 mb-2 font-medium justify-between	">
-              <div className="product_name">Bread</div>
-              <div className="product_price">£ 1.10</div>
-              
-              <button className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-1 px-3 rounded">
-                Add
-              </button>
-              
-            </div> */}
-          
-          <hr />
-    </div>
-        </div>
-
-        <div className="w-1/3 rounded overflow-hidden shadow-lg">
-          {/* <img className="w-full" src="/img/card-top.jpg" alt="Sunset in the mountains"> */}
-          <div className="px-6 py-4">
-            <div className="font-bold text-xl mb-2">Basket</div>
-            <hr />
-            
-             
-
-             
-
-              {
-                
-                allProduts.length!=0?allProduts.map((p)=>{
-                  qty = p.qty;
-                  
-                  return (<>
-                    <div key={p.name} className="products_list flex text-xl mt-2 mb-2 font-medium justify-between	">
-                <div className="product_name">{p?.name}</div>
-                <div className="product_price">£ {p?.price}</div>
-                
-                <div>
-                  <button onClick={()=>{qty = qty+1;
-                    setProductQuantity(1,p,"plus")
-                  }} className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-1 px-3 rounded">
-                    +
-                  </button>
-                  <span className="quantity"> {p.qty} </span>
-
-                  <button onClick={()=>{qty = qty+1;
-                    setProductQuantity(1,p,"minus")
-                  }} className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-1 px-3 rounded">
-                    -
-                  </button>
-                </div>
-
-                
-              </div>
-              <hr />
-                  </>)
-                }):(<h2>Basket is empty</h2>)
-                
-              }
-            
-              
-              <div className="products_list flex text-xl mt-2 mb-2 font-medium justify-between	">
-                <div className="product_name">Bread</div>
-                <div className="product_price">£ 1.10</div>
-                
-                <div>
-                  <button className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-1 px-3 rounded">
-                    +
-                  </button>
-                  <span className="quantity"> 1 </span>
-                  <button className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-1 px-3 rounded">
-                    -
-                  </button>
-                </div>
-
-                
-              </div>
-
-              <hr />
-              
-              <div className="products_list flex text-xl mt-2 mb-2 font-medium justify-between">
-                <h2>Sub Total:</h2>
-                <span className="subTotal">£ {subTotal.toFixed(2)}</span>
-
-              </div>
-              <hr />
-
-              <div className="products_list flex text-xl mt-2 mb-2 font-medium justify-between">
-                <h2>Savings:</h2>
-                <span className="saving">£ {savings.toFixed(2)}</span>
-
-              </div>
-              <hr />
-
-              <div className="products_list flex text-xl mt-2 mb-2 font-medium justify-between">
-                <h2>Total Amount:</h2>
-                <span className="subTotal">£ {totalAmount.toFixed(2)}</span>
-
-              </div>
       </div>
-        </div>
-      </div>
-
     </div>
-  );
+  )
 }
 
 export default App;
